@@ -1,8 +1,8 @@
 <?php
   // ここにDBに登録する処理を記述する
-$dsn='mysql:dbname=oneline_bbs;host=localhost';
-$user='root';
-$password='';
+$dsn='mysql:dbname=LAA0745419-onelinebbs;host=mysql111.phy.lolipop.lan';
+$user='LAA0745419';
+$password='tenpa8891tenpa';
 $dbh=new PDO($dsn,$user,$password);
 $dbh->query('SET NAMES utf8');
 
