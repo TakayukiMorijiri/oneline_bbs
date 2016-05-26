@@ -66,6 +66,23 @@ $stmt = $dbh->prepare($sql);
 $stmt->execute($data);
 
 }
+// -------------------------------------------------
+//  データの削除処理
+if (!empty($_GET['action']) && $_GET['action'] = 'delete') {
+  $sql = 'DELETE FROM `posts` WHERE `id`= ?';
+  $data[] = $_GET['id'];
+
+  // sql実行処理
+  $stmt = $dbh->prepare($sql);
+  $stmt->execute($data);
+
+// bbs.phpに画面を遷移する
+  header('Location: bbs.php');
+  exit();
+
+
+}
+
 
 
 // -------------------------------------------------
@@ -102,6 +119,7 @@ $dbh = null;
   <link rel="stylesheet" href="assets/css/form.css">
   <link rel="stylesheet" href="assets/css/timeline.css">
   <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
   <!-- ナビゲーションバー -->
@@ -186,6 +204,9 @@ $dbh = null;
                     ?>
                       <h2><a href="#"><?php  echo $d['nickname']; ?></a> <span><?php echo $created; ?></span></h2>
                       <p><?php echo $d['comment']?></p>
+                      <a href="bbs.php?action=delete&id=<?php echo $d['id'];?>" onclick="return confirm('本当に削除しますか？？');">
+                      <i class="fa fa-trash trash" aria-hidden="true"></i>
+                      </a>
                   </div>
               </div>
           </article>
