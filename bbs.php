@@ -1,25 +1,74 @@
 <?php
   // ここにDBに登録する処理を記述する
-$dsn='mysql:dbname=LAA0745419-onelinebbs;host=mysql111.phy.lolipop.lan';
-$user='LAA0745419';
-$password='tenpa8891tenpa';
+// $dsn='mysql:dbname=LAA0745419-onelinebbs;host=mysql111.phy.lolipop.lan';
+// $user='LAA0745419';
+// $password='tenpa8891tenpa';
+// $dbh=new PDO($dsn,$user,$password);
+// $dbh->query('SET NAMES utf8');
+
+$dsn='mysql:dbname=oneline_bbs;host=localhost';
+$user='root';
+$password='';
 $dbh=new PDO($dsn,$user,$password);
 $dbh->query('SET NAMES utf8');
 
+// -------------------------------------------------
+// 編集ボタンクリック時
+$editname = '';
+$editcomment = '';
+$id = '';
+if (!empty($_GET['action']) && $_GET['action']=='edit') {
+  // 該当のデータを取得する
+  $sql = 'SELECT * FROM `posts` WHERE `id` = ?';
+  $data[] = $_GET['id'];
 
-// POST送信された時のみ登録処理を実行
+// SQL実行
+  $stmt = $dbh->prepare($sql);
+  $stmt ->execute($data);
+
+   //データを取得する 
+  $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// 取得した値を格納
+  $editname = $rec['nickname'];
+  $editcomment = $rec['comment'];
+  $id = $rec['id'];
+
+
+
+
+}
+
+
+
+
+// -------------------------------------------------
+// POST送信された時の処理
 if (!empty($_POST)) {
-  // データを登録する
+  if (empty($_POST['id'])) {
+      // データを登録する
 $sql = 'INSERT INTO `posts`(`nickname`, `comment`, `created`) VALUES (?,?,now())';
 
 $data[] = $_POST['nickname'];
 $data[] = $_POST['comment'];
 
+  
+} else {
+  // データを更新する
+  $sql = 'UPDATE `posts` SET `nickname`= ? ,`comment`= ? WHERE `id`= ?';
+  $data[] = $_POST['nickname'];
+  $data[] = $_POST['comment'];
+  $data[] = $_POST['id'];
+  }
 
+  // SQL実行
 $stmt = $dbh->prepare($sql);
-$stmt->execute($data);  
+$stmt->execute($data);
+
 }
 
+
+// -------------------------------------------------
 $sql = 'SELECT * FROM `posts`ORDER BY `created` DESC';
 $stmt = $dbh->prepare($sql);
 $stmt->execute();
@@ -90,19 +139,24 @@ $dbh = null;
           <!-- nickname -->
           <div class="form-group">
             <div class="input-group">
-              <input type="text" name="nickname" class="form-control" id="validate-text" placeholder="nickname" required>
+              <input type="text" name="nickname" class="form-control" id="validate-text" placeholder="nickname" required value="<?php echo $editname; ?>">
               <span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>
             </div>
           </div>
           <!-- comment -->
           <div class="form-group">
             <div class="input-group" data-validate="length" data-length="4">
-              <textarea type="text" class="form-control" name="comment" id="validate-length" placeholder="comment" required></textarea>
+              <textarea type="text" class="form-control" name="comment" id="validate-length" placeholder="comment" required><?php echo $editcomment; ?></textarea>
               <span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>
             </div>
           </div>
           <!-- つぶやくボタン -->
+        <?php if ($editname == ''): ?>
           <button type="submit" class="btn btn-primary col-xs-12" disabled>つぶやく</button>
+        <?php else: ?>
+          <input type="hidden" name="id" value="<?php echo $id; ?>">
+          <button type="submit" class="btn btn-primary col-xs-12" disabled>更新する</button>
+        <?php endif; ?>
         </form>
       </div>
 
@@ -112,10 +166,14 @@ $dbh = null;
         <?php  foreach($data as $d): ?>
           <article class="timeline-entry">
               <div class="timeline-entry-inner">
+
+                  <a href="bbs.php?action=edit&id=<?php echo $d['id'];?>">
                   <div class="timeline-icon bg-success">
                       <i class="entypo-feather"></i>
                       <i class="fa fa-cogs"></i>
                   </div>
+                  </a>
+
                   <div class="timeline-label">
                     <?php
                     // 一旦、日時型に変換する（String型へ変換）
