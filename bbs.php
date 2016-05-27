@@ -24,10 +24,14 @@ if (!empty($_GET['action']) && $_GET['action']=='edit') {
   $editname = $rec['nickname'];
   $editcomment = $rec['comment'];
   $id = $rec['id'];
-
-
-
-
+}
+// -------------------------------------------------
+// ファイルのアップロード
+$picture_path = '';
+if (!empty($_FILES) ) {
+  $filename = $_FILES['picture_path']['name'];
+  $picture_path = 'pictures/' .date('YmdHis').$filename;
+  move_uploaded_file($_FILES['picture_path']['tmp_name'], $picture_path);
 }
 
 
@@ -38,17 +42,19 @@ if (!empty($_GET['action']) && $_GET['action']=='edit') {
 if (!empty($_POST)) {
   if (empty($_POST['id'])) {
       // データを登録する
-$sql = 'INSERT INTO `posts`(`nickname`, `comment`, `created`,`delete_flag`) VALUES (?,?,now(),0)';
+$sql = 'INSERT INTO `posts`(`nickname`, `comment`, `created`,`delete_flag`,`picture_path`) VALUES (?,?,now(), 0, ?)';
 
 $data[] = $_POST['nickname'];
 $data[] = $_POST['comment'];
+$data[] = $picture_path;
 
   
 } else {
   // データを更新する
-  $sql = 'UPDATE `posts` SET `nickname`= ? ,`comment`= ? WHERE `id`= ?';
+  $sql = 'UPDATE `posts` SET `nickname`= ? ,`comment`= ? ,`picture_path` =? WHERE `id`= ?';
   $data[] = $_POST['nickname'];
   $data[] = $_POST['comment'];
+  $data[] = $picture_path;
   $data[] = $_POST['id'];
   }
 
@@ -161,7 +167,7 @@ $dbh = null;
       <!-- 画面左側 -->
       <div class="col-md-4 content-margin-top">
         <!-- form部分 -->
-        <form action="bbs.php" method="post">
+        <form action="bbs.php" method="post" enctype="multipart/form-data">
           <!-- nickname -->
           <div class="form-group">
             <div class="input-group">
@@ -176,6 +182,10 @@ $dbh = null;
               <span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>
             </div>
           </div>
+          <!-- 画像指定ボタン -->
+          <div class="form-group">
+            <input type="file" name="picture_path">
+          </div>
           <!-- つぶやくボタン -->
         <?php if ($editname == ''): ?>
           <button type="submit" class="btn btn-primary col-xs-12" disabled>つぶやく</button>
@@ -189,6 +199,7 @@ $dbh = null;
       <!-- 画面右側 -->
       <div class="col-md-8 content-margin-top">
         <div class="timeline-centered">
+        <p>総つぶやき数：<?php echo count($data); ?>件</p>
         <?php  foreach($data as $d): ?>
           <article class="timeline-entry">
               <div class="timeline-entry-inner">
@@ -212,6 +223,13 @@ $dbh = null;
                     ?>
                       <h2><a href="#"><?php  echo $d['nickname']; ?></a> <span><?php echo $created; ?></span></h2>
                       <p><?php echo $d['comment']?></p>
+                      <!-- 画像表示 -->
+                      <?php if($d['picture_path']!=''): ?>
+                         <div>
+                           <img src="<?php echo $d['picture_path']; ?>" alt="" width="200px" height="200px">
+                         </div>
+                      <?php endif ?>
+                      <!-- サムズアップボタンの設置 -->
                       <a href="bbs.php?action=like&id=<?php echo $d['id'];?>" class="thumbs"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i> LIKE <?php echo $d['likes']; ?></a>
 
                       <a href="bbs.php?action=delete&id=<?php echo $d['id'];?>" onclick="return confirm('本当に削除しますか？？');">
